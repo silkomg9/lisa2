@@ -28,7 +28,11 @@
 
 ## Vercel 배포
 
-이 폴더(`PROJECT`)를 배포 루트로 선택합니다. Framework Preset은 Other, Build Command는 비워두고 Output Directory는 `.`을 사용합니다. 서버 코드나 빌드 도구는 필요하지 않습니다.
+저장소 전체를 연결했다면 Vercel의 Root Directory는 저장소 최상위(기본값)로 둡니다. 최상위 `vercel.json`이 `PROJECT` 폴더를 배포 대상으로 지정합니다. 이미 Root Directory를 `PROJECT`로 설정했다면 그대로 사용해도 됩니다. 이 경우 `PROJECT/vercel.json`이 현재 폴더(`.`)를 배포합니다.
+
+두 설정 모두 Framework는 Other이며 설치·빌드 명령 없이 HTML/CSS/JavaScript를 배포합니다. 파일 변경 후 GitHub 등 연결된 저장소에 커밋·푸시해야 새 설정이 적용됩니다. Vercel의 Deployments에서 최신 커밋으로 생성된 배포가 Ready인지 확인하고 해당 배포의 Visit 주소를 여세요. 이전 커밋을 재배포하면 새 설정이 반영되지 않습니다.
+
+404가 계속되면 Root Directory가 실제 존재하는 경로인지, 최신 배포의 출력에 `index.html`이 포함됐는지 확인합니다. Root Directory는 대소문자를 구분하며 하위 폴더를 지정할 경우 `PROJECT`입니다. 브라우저 새로고침만으로 배포 설정이 변경되지는 않습니다.
 
 ## 추가 기능 진행 상태
 
