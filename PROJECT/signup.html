@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>회원가입 · 고객노트</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase-client.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</head>
+<body data-page="signup" class="auth-page auth-pending">
+  <div id="auth-status" class="auth-gate" role="status"><div class="panel auth-gate-card"><p id="auth-status-message">로그인 상태를 확인하고 있어요.</p><button id="auth-retry" class="button secondary" type="button" hidden>다시 확인</button></div></div>
+  <main id="auth-main" class="auth-main">
+    <a class="brand auth-brand" href="index.html">고객노트</a>
+    <p class="auth-intro">우리 매장의 작은 기억장을 시작하세요.</p>
+    <section class="panel auth-card">
+      <h1>회원가입</h1>
+      <p class="muted">이메일과 비밀번호만 입력하면 돼요.</p>
+      <form id="auth-form">
+        <label>이메일<input id="auth-email" type="email" autocomplete="email" required maxlength="254" placeholder="name@example.com"></label>
+        <label>비밀번호<input id="auth-password" type="password" autocomplete="new-password" minlength="6" required aria-describedby="password-help" placeholder="6자 이상 입력하세요"></label>
+        <p id="password-help" class="field-help">영문·숫자·특수문자를 조합한 긴 비밀번호를 권장해요.</p>
+        <p id="auth-error" class="error" role="alert"></p>
+        <p id="auth-message" class="auth-message" role="status"></p>
+        <button id="auth-submit" class="button primary" type="submit">회원가입</button>
+      </form>
+      <p class="auth-switch">이미 계정이 있으신가요? <a href="login.html">로그인</a></p>
+    </section>
+  </main>
+  <noscript>회원가입하려면 브라우저에서 JavaScript를 허용해 주세요.</noscript>
+</body>
+</html>

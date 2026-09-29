@@ -2,8 +2,10 @@
  * 데이터: localStorage / 작성 중 메모: sessionStorage
  * 페이지별 동작은 home, detail, newCustomer, review 함수에 있습니다.
  */
-(() => {
+(async () => {
   "use strict";
+  const session = await window.customerAuth.ready;
+  if (!session) return;
   const DATA_KEY = "customer-note-data-v1";
   const RECENT_KEY = "customer-note-recent-v1";
   const DRAFT_KEY = "customer-note-draft-v1";
@@ -299,4 +301,5 @@
     });
   }
   ({home,detail,new:newCustomer,review}[page] || home)();
+  window.customerAuth.mountHeader();
 })();

@@ -20,6 +20,64 @@
   --control-radius: 10px;
 }
 
+/* 인증 확인 전에는 고객 화면과 인증 폼을 표시하지 않습니다. */
+.auth-pending > #shell,
+.auth-pending > #main,
+.auth-pending > #auth-main {
+  display: none !important;
+}
+
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.auth-gate-card {
+  max-width: 440px;
+  padding: 28px;
+  text-align: center;
+}
+
+.auth-gate-card button { margin-top: 18px; }
+
+body.auth-page { min-height: 100dvh; }
+
+main.auth-main {
+  margin: 0 auto;
+  padding: 64px 20px;
+  max-width: 480px;
+}
+
+.auth-brand { justify-content: center; color: var(--primary); }
+.auth-intro { text-align: center; color: var(--muted); margin: 8px 0 28px; }
+.auth-card { padding: 30px; }
+.auth-card h1 { font-size: 26px; }
+.auth-card > .muted { font-size: 13px; }
+.auth-card form { margin-top: 24px; }
+.auth-card label { margin-top: 18px; }
+.auth-card #auth-submit { width: 100%; margin-top: 22px; }
+.auth-card .error:not(:empty), .auth-message:not(:empty) { margin-top: 16px; }
+.auth-message { color: var(--primary); font-size: 13px; }
+.auth-switch { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 24px; text-align: center; font-size: 13px; color: var(--muted); }
+.auth-switch a { color: var(--primary); font-weight: 600; margin-left: 6px; text-decoration: underline; text-underline-offset: 3px; }
+.account-controls { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.account-email { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-controls .button { flex-shrink: 0; }
+.topbar:has(.account-controls) { gap: 12px; }
+.topbar:has(.account-controls) > .demo-badge { display: none; }
+.auth-action-error { position: fixed; bottom: 20px; right: 20px; z-index: 25; max-width: min(400px, calc(100vw - 40px)); padding: 16px; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); }
+
+@media (max-width: 700px) {
+  main.auth-main { padding: 36px 18px; }
+  .auth-card { padding: 24px; }
+  .account-email { display: none; }
+}
+
 * {
   box-sizing: border-box;
 }

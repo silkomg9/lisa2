@@ -1,4 +1,4 @@
 <!doctype html>
 <html lang="ko">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>고객 상세 · 고객노트</title><link rel="stylesheet" href="css/style.css"><script src="js/mock-data.js" defer></script><script src="js/app.js" defer></script></head>
-<body data-page="detail"><div id="shell"></div><main id="main"><a class="back" href="index.html">← 고객 검색으로</a><div id="detail-content"></div></main></body></html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>고객 상세 · 고객노트</title><link rel="stylesheet" href="css/style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script><script src="js/supabase-client.js" defer></script><script src="js/auth.js" defer></script><script src="js/mock-data.js" defer></script><script src="js/app.js" defer></script></head>
+<body data-page="detail" class="auth-pending"><div id="auth-status" class="auth-gate" role="status"><div class="panel auth-gate-card"><p id="auth-status-message">로그인 상태를 확인하고 있어요.</p><button id="auth-retry" class="button secondary" type="button" hidden>다시 확인</button></div></div><div id="shell"></div><main id="main"><a class="back" href="index.html">← 고객 검색으로</a><div id="detail-content"></div></main></body></html>

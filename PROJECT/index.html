@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>고객 검색 · 고객노트</title><link rel="stylesheet" href="css/style.css"><script src="js/mock-data.js" defer></script><script src="js/app.js" defer></script></head>
-<body data-page="home">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>고객 검색 · 고객노트</title><link rel="stylesheet" href="css/style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script><script src="js/supabase-client.js" defer></script><script src="js/auth.js" defer></script><script src="js/mock-data.js" defer></script><script src="js/app.js" defer></script></head>
+<body data-page="home" class="auth-pending"><div id="auth-status" class="auth-gate" role="status"><div class="panel auth-gate-card"><p id="auth-status-message">로그인 상태를 확인하고 있어요.</p><button id="auth-retry" class="button secondary" type="button" hidden>다시 확인</button></div></div>
 <div id="shell"></div>
 <main id="main">
   <header class="page-heading"><div><p class="eyebrow">우리 매장의 고객을 기억하는 방법</p><h1>고객 검색</h1><p>고객을 찾고, 지난 이야기를 이어가세요.</p></div><a class="button primary" href="new-customer.html"><span aria-hidden="true">＋</span> 신규 고객 등록</a></header>
