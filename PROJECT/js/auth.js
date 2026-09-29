@@ -3,8 +3,10 @@
 (() => {
   "use strict";
   const $ = selector => document.querySelector(selector);
-  const authPage = ["login", "signup"].includes(document.body.dataset.page);
+  const authPage = ["login", "signup", "reset-password"].includes(document.body.dataset.page);
   const isSignup = document.body.dataset.page === "signup";
+  const isReset = document.body.dataset.page === "reset-password";
+  let passwordUpdated = false;
   const client = window.customerDb;
   let resolveReady;
   let currentSession = null;
@@ -22,10 +24,12 @@
 
   function errorMessage(error) {
     const messages = {
-      invalid_credentials: "이메일 또는 비밀번호가 올바르지 않습니다.",
+      invalid_credentials: "이메일 또는 비밀번호가 올바르지 않습니다. 이미 가입하셨다면 아래 ‘비밀번호 재설정’을 이용해 주세요.",
       email_not_confirmed: "이메일 인증이 필요합니다. 가입 시 받은 메일의 확인 링크를 눌러주세요.",
-      user_already_exists: "이미 가입된 이메일입니다. 로그인해 주세요.",
-      email_exists: "이미 가입된 이메일입니다. 로그인해 주세요.",
+      user_already_exists: "이미 가입된 이메일입니다. 로그인하거나 아래 ‘비밀번호 재설정’을 이용해 주세요.",
+      email_exists: "이미 가입된 이메일입니다. 로그인하거나 아래 ‘비밀번호 재설정’을 이용해 주세요.",
+      same_password: "기존 비밀번호와 다른 새 비밀번호를 입력해 주세요.",
+      reauthentication_needed: "본인 확인이 필요합니다. 새 비밀번호 재설정 메일의 링크로 다시 시도해 주세요.",
       signup_disabled: "현재 회원가입이 허용되지 않습니다. 서비스 관리자에게 문의해 주세요.",
       email_provider_disabled: "이메일 로그인이 비활성화되어 있습니다. 서비스 관리자에게 문의해 주세요.",
       email_address_invalid: "올바른 이메일 주소를 입력해 주세요.",
@@ -72,6 +76,14 @@
     const previousId = currentSession?.user?.id;
     currentSession = session;
     if (!ready) { ready = true; resolveReady(session); }
+    if (isReset) {
+      reveal();
+      $("#reset-request-form").hidden = Boolean(session) && !callbackError;
+      $("#password-update-form").hidden = !session || Boolean(callbackError) || passwordUpdated;
+      $("#reset-complete").hidden = !passwordUpdated;
+      if (callbackError) $("#auth-error").textContent = "재설정 링크가 만료되었거나 유효하지 않습니다. 아래에서 새 메일을 요청해 주세요.";
+      return;
+    }
     if (authPage) {
       if (session) { navigate("index.html"); return; }
       reveal();
@@ -146,7 +158,67 @@
     return;
   }
 
-  if (authPage) {
+  if (isReset) setupPasswordReset();
+
+  function setupPasswordReset() {
+    $("#reset-request-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = $("#reset-send");
+      if (button.disabled) return;
+      $("#auth-error").textContent = "";
+      $("#auth-message").textContent = "";
+      const email = $("#reset-email").value.trim();
+      if (!email) { $("#auth-error").textContent = "가입한 이메일을 입력해 주세요."; return; }
+      if (!/^https?:$/.test(location.protocol)) {
+        $("#auth-error").textContent = "비밀번호 재설정은 배포된 서비스 주소에서 이용해 주세요.";
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "메일 요청 중…";
+      try {
+        const {error} = await client.auth.resetPasswordForEmail(email, {
+          redirectTo: new URL("reset-password.html", location.href).href.split(/[?#]/)[0]
+        });
+        if (error) throw error;
+        $("#auth-message").textContent = "가입된 이메일이라면 비밀번호 재설정 메일이 발송됩니다. 받은편지함과 스팸함을 확인해 주세요.";
+      } catch (error) {
+        $("#auth-error").textContent = errorMessage(error);
+      } finally {
+        button.disabled = false;
+        button.textContent = "재설정 메일 받기";
+      }
+    });
+    $("#password-update-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = $("#password-save");
+      if (button.disabled) return;
+      $("#auth-error").textContent = "";
+      $("#auth-message").textContent = "";
+      const password = $("#new-password").value;
+      if (!currentSession || callbackError) { $("#auth-error").textContent = "새 재설정 메일의 링크를 열어주세요."; return; }
+      if (password.length < 6) { $("#auth-error").textContent = "비밀번호는 6자 이상으로 입력해 주세요."; return; }
+      if (password !== $("#confirm-password").value) { $("#auth-error").textContent = "두 비밀번호가 일치하지 않습니다."; return; }
+      button.disabled = true;
+      button.textContent = "저장 중…";
+      try {
+        const {error} = await client.auth.updateUser({password});
+        if (error) throw error;
+        passwordUpdated = true;
+        $("#new-password").value = "";
+        $("#confirm-password").value = "";
+        $("#password-update-form").hidden = true;
+        $("#reset-complete").hidden = false;
+        $("#auth-message").textContent = "비밀번호를 변경했습니다. 다음 로그인부터 새 비밀번호를 사용해 주세요.";
+      } catch (error) {
+        $("#auth-error").textContent = errorMessage(error);
+      } finally {
+        button.disabled = false;
+        button.textContent = "새 비밀번호 저장";
+      }
+    });
+  }
+
+  if (authPage && !isReset) {
     $("#auth-form").addEventListener("submit", async event => {
       event.preventDefault();
       const button = $("#auth-submit");
@@ -172,6 +244,8 @@
         $("#auth-password").value = "";
         if (result.data.session) {
           applySession(result.data.session);
+        } else if (isSignup && Array.isArray(result.data.user?.identities) && result.data.user.identities.length === 0) {
+          $("#auth-message").textContent = "이미 가입된 이메일일 수 있습니다. 아래에서 로그인하거나 비밀번호를 재설정해 주세요.";
         } else if (isSignup) {
           $("#auth-message").textContent = "회원가입을 요청했습니다. 받은편지함과 스팸함에서 확인 메일을 찾아 인증한 뒤 로그인해 주세요. 이미 가입한 이메일이라면 로그인해 주세요.";
         } else {
@@ -190,6 +264,10 @@
   client.auth.onAuthStateChange((event, session) => {
     if (event === "INITIAL_SESSION") return; // 최초 상태는 getSession으로 확인합니다.
     revision += 1;
+    if (event === "PASSWORD_RECOVERY" && !isReset) {
+      navigate("reset-password.html");
+      return;
+    }
     applySession(session);
   });
   window.addEventListener("pageshow", event => {

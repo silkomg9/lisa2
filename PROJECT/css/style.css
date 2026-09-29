@@ -63,6 +63,9 @@ main.auth-main {
 .auth-card #auth-submit { width: 100%; margin-top: 22px; }
 .auth-card .error:not(:empty), .auth-message:not(:empty) { margin-top: 16px; }
 .auth-message { color: var(--primary); font-size: 13px; }
+.auth-help { margin-top: 18px; text-align: center; color: var(--muted); font-size: 12px; }
+.auth-help a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.auth-full-button { width: 100%; margin-top: 22px; }
 .auth-switch { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 24px; text-align: center; font-size: 13px; color: var(--muted); }
 .auth-switch a { color: var(--primary); font-weight: 600; margin-left: 6px; text-decoration: underline; text-underline-offset: 3px; }
 .account-controls { display: flex; align-items: center; gap: 10px; min-width: 0; }

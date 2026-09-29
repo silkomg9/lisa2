@@ -64,3 +64,11 @@ Supabase 클라이언트 연결 설정을 추가했습니다. 이메일 회원�
 - Supabase Dashboard → Authentication → Providers의 Email 공급자가 활성화되어 있어야 합니다. Authentication → URL Configuration에서 Site URL을 실제 서비스 주소로, Redirect URLs에 `https://passenger-amber.vercel.app/login.html`을 등록하세요. 하위 경로로 서비스한다면 실제 `/PROJECT/login.html` 주소를 등록합니다.
 - 확인 메일의 발송 가능 여부와 속도 제한은 Supabase의 메일 설정에 따릅니다. 이 작업에서는 관리자 설정을 변경하거나 테스트 가입 메일을 발송하지 않았습니다.
 - 고객 데이터는 계속 브라우저 localStorage에 저장되며 계정별로 분리되지 않습니다. 로그인 기능을 추가한 것이며, 고객 데이터 DB 저장·RLS 접근 제한은 아직 구현하지 않았습니다.
+
+## 비밀번호 재설정
+
+로그인·회원가입 화면의 비밀번호 재설정 링크 → `reset-password.html`에서 가입 이메일 입력 → 받은 메일의 링크에서 새 비밀번호와 확인값 입력 → 저장 순서입니다. Supabase `resetPasswordForEmail`과 `updateUser`를 사용합니다. 이미 유효한 로그인 세션이 있으면 새 비밀번호 입력 화면을 표시합니다.
+
+Supabase Authentication → URL Configuration에서 Site URL을 `https://passenger-amber.vercel.app`로 변경하고 Redirect URLs에 `https://passenger-amber.vercel.app/reset-password.html`도 등록해야 합니다. `/PROJECT/` 경로로 서비스한다면 실제 하위 경로의 재설정 주소를 등록합니다. 기존 localhost 설정이 남으면 인증 메일이 올바른 화면으로 돌아오지 못할 수 있습니다. 이번 코드 작업에서는 Supabase 관리자 설정을 변경하지 않았습니다.
+
+중복 가입 오류는 로그인·재설정으로 안내합니다. Supabase가 가입 여부를 숨기는 응답을 보낼 때는 가입 여부를 단정하지 않습니다. 고객노트 사용자 계정의 비밀번호 재설정이며 Supabase 관리자 계정의 비밀번호를 바꾸는 기능은 아닙니다.
