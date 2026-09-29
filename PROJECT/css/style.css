@@ -715,6 +715,76 @@ tbody tr:hover {
   border-color: transparent;
 }
 
+.history-group {
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.history-group > summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  cursor: pointer;
+  list-style: none;
+  background: var(--bg);
+}
+
+.history-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.history-group > summary:hover {
+  background: var(--primary-soft);
+}
+
+.history-group > summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -3px;
+}
+
+.history-day {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.history-day .history-label {
+  margin-left: 0;
+}
+
+.history-total {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.history-chevron {
+  margin-left: auto;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--primary);
+}
+
+.history-group[open] .history-chevron {
+  transform: rotate(90deg);
+}
+
+.history-items {
+  padding: 0 12px;
+}
+
+.history-item {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
 .timeline time {
   font-size: 12px;
   color: var(--muted);
@@ -1066,5 +1136,250 @@ input:not([type=radio]):not([type=checkbox]):focus, textarea:focus {
   }
   .demo-badge {
     font-size: 12px;
+  }
+}
+
+/* 추가 기록 폼: 기존 카드와 버튼 스타일을 그대로 사용합니다. */
+.record-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.record-section > label, .record-fields { margin-bottom: 16px; }
+.record-section > .button { width: 100%; margin-top: 16px; }
+.record-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.record-fields > label { min-width: 0; }
+@media (max-width: 700px) { .record-fields { grid-template-columns: 1fr; } }
+
+/* 고객 상세: 고정 메뉴 / 고객 정보 / 입력창의 세 영역 */
+.profile-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.anniversary-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 5px 0 7px;
+  font-size: 12px;
+  color: var(--secondary-ink);
+  overflow-wrap: anywhere;
+}
+
+.button-small {
+  min-height: 28px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.anniversary-form {
+  max-width: 320px;
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: var(--white);
+}
+
+.anniversary-form label + label {
+  margin-top: 10px;
+}
+
+.anniversary-form input {
+  min-width: 0;
+}
+
+.anniversary-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.anniversary-status {
+  display: block;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+.anniversary-status:empty {
+  display: none;
+}
+
+.customer-column,
+.input-column {
+  min-width: 0;
+}
+
+.customer-history {
+  margin-top: 20px;
+}
+
+.preferences-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.content-panel .preferences-heading h2 {
+  margin-bottom: 0;
+}
+
+.preferences-heading .button {
+  flex-shrink: 0;
+}
+
+.preferences-form > label {
+  margin-top: 12px;
+}
+
+.preferences-status {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+.preferences-status:empty {
+  display: none;
+}
+
+.input-column {
+  margin-top: 24px;
+}
+
+@media (min-width: 960px) {
+  body[data-page="detail"] {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  body[data-page="detail"] .sidebar {
+    overflow-y: auto;
+  }
+
+  body[data-page="detail"] #main {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 77px);
+    height: calc(100dvh - 77px);
+    max-width: none;
+    padding: 18px 24px 24px;
+  }
+
+  body[data-page="detail"] #main > .back {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-bottom: 14px;
+  }
+
+  body[data-page="detail"] .storage-warning {
+    flex-shrink: 0;
+  }
+
+  #detail-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr);
+    gap: 20px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .customer-column,
+  .input-column {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--input-line) transparent;
+  }
+
+  .customer-column {
+    padding: 4px 10px 12px 4px;
+    scroll-padding-block: 12px;
+  }
+
+  .input-column {
+    margin-top: 0;
+    padding: 20px;
+    scroll-padding-block: 20px;
+  }
+
+  .customer-column:focus-visible,
+  .input-column:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  .customer-column .page-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .customer-column .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .customer-column .summary-card {
+    padding: 16px;
+  }
+
+  .customer-column .summary-card.highlight {
+    grid-column: 1 / -1;
+  }
+
+  .customer-column .content-panel {
+    padding: 20px;
+  }
+
+  .customer-column .content-panel + .content-panel {
+    margin-top: 16px;
+  }
+
+  .input-column h2 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .input-column #memo-text {
+    height: 100px;
+    min-height: 80px;
+  }
+
+  .input-column #purchase-note {
+    height: 72px;
+    min-height: 64px;
+  }
+
+  .input-column .record-section {
+    margin-top: 22px;
+    padding-top: 20px;
+  }
+
+  .input-column .record-section > label,
+  .input-column .record-fields {
+    margin-bottom: 12px;
+  }
+
+  .input-column .record-fields {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 10px;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1200px) {
+  body[data-page="detail"] #main {
+    padding-inline: 16px;
+  }
+
+  #detail-content {
+    gap: 14px;
+  }
+
+  .input-column .record-fields {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

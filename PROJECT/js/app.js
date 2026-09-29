@@ -66,6 +66,31 @@
     $("#recent-customers").innerHTML = recent.length ? recent.map((c, i) => `<a class="recent-card" href="${detailUrl(c)}">${avatar(c, i)}<div><strong>${escape(c.name)}</strong><p>${escape(c.phone)}</p></div><span aria-hidden="true">›</span></a>`).join("") : '<div class="panel empty small">아직 조회한 고객이 없어요. 고객을 선택하면 이곳에 표시됩니다.</div>';
   }
   function tags(values) { return values.length ? values.map(v => `<span class="tag">${escape(v)}</span>`).join("") : '<p class="muted small">아직 기록된 정보가 없어요.</p>'; }
+
+  // 구매와 상담을 각각 날짜별로 묶습니다. 각 묶음과 내부 기록은 최신순입니다.
+  function renderHistory(history) {
+    if (!history.length) return '<p class="muted small">아직 기록이 없어요. 구매나 상담 내용을 남겨주세요.</p>';
+    const groups = new Map();
+    for (const item of history) {
+      const day = date(item.date);
+      const key = item.type + ":" + day;
+      if (!groups.has(key)) groups.set(key, {day, type:item.type, date:item.date, items:[]});
+      groups.get(key).items.push(item);
+    }
+    const rows = [...groups.values()].map(group => {
+      const isPurchase = group.type === "purchase";
+      const total = isPurchase ? group.items.reduce((sum, item) => sum + Number(item.amount), 0) : 0;
+      const contents = group.items.map(item => {
+        const time = new Date(item.date).toLocaleTimeString("ko-KR", {hour:"2-digit", minute:"2-digit"});
+        const extra = isPurchase
+          ? `<span class="muted small">${Number(item.amount).toLocaleString("ko-KR")}원</span>${item.note ? `<p class="muted small">${escape(item.note)}</p>` : ""}`
+          : `<span class="visibility">${visibility(item.visibility)}</span>${item.preference ? `<p class="muted small">취향 · ${escape(item.preference)}</p>` : ""}${item.interest ? `<p class="muted small">관심 상품 · ${escape(item.interest)}</p>` : ""}${item.task ? `<p class="muted small">다음 할 일 · ${escape(item.task)}</p>` : ""}`;
+        return `<div class="history-item"><time datetime="${escape(item.date)}">${time}</time><p>${escape(item.text)}</p>${extra}</div>`;
+      }).join("");
+      return `<li><details class="history-group"><summary><span class="history-day"><time datetime="${escape(group.date)}">${group.day}</time><span class="history-label">${isPurchase ? "구매" : "상담"} ${group.items.length}건</span></span>${isPurchase ? `<span class="history-total">${total.toLocaleString("ko-KR")}원</span>` : ""}<span class="history-chevron" aria-hidden="true">›</span></summary><div class="history-items">${contents}</div></details></li>`;
+    });
+    return `<ol class="timeline">${rows.join("")}</ol>`;
+  }
   function detail() {
     const c = findCustomer();
     if (!c) return missing();
@@ -74,8 +99,35 @@
     const history = [...c.history].sort((a, b) => new Date(b.date) - new Date(a.date));
     const purchase = history.find(item => item.type === "purchase");
     const params = new URLSearchParams(location.search);
-    const success = params.get("saved") === "1" ? "메모를 저장했어요. 다음 응대에 활용해 보세요." : params.get("created") === "1" ? "새로운 고객을 등록했어요." : "";
-    $("#detail-content").innerHTML = `${success ? `<div class="success" role="status">${success}</div>` : ""}<header class="page-heading"><div class="profile">${avatar(c)}<div><h1>${escape(c.name)} <span class="muted small">고객님</span></h1><p>${escape(c.phone)}</p></div></div><span class="demo-badge">고객 한눈에 보기</span></header><section class="summary-grid" aria-label="고객 핵심 요약"><div class="panel summary-card"><div class="label">최근 구매</div><strong>${escape(purchase?.text || "아직 구매 기록이 없어요")}</strong><p>${purchase ? `${date(purchase.date)} · ${Number(purchase.amount).toLocaleString("ko-KR")}원` : "구매 이력은 샘플 데이터로 제공됩니다."}</p></div><div class="panel summary-card"><div class="label">마지막 방문일</div><strong>${date(c.lastVisit)}</strong><p>최근 응대 기록 기준</p></div><div class="panel summary-card highlight"><div class="label">↗ 다음 응대 메모</div><strong>${escape(c.nextMemo?.text || "다음 방문에 전할 메모를 남겨주세요.")}</strong>${c.nextMemo ? `<p>${visibility(c.nextMemo.visibility)}</p>` : ""}</div></section><div class="detail-grid"><div><section class="panel content-panel"><h2>고객 취향과 관심사</h2><div class="tag-group"><h3>취향</h3>${tags(c.preferences)}</div><div class="tag-group"><h3>관심 상품</h3>${tags(c.interests)}</div>${c.basicNote ? `<div class="tag-group"><h3>기본 메모</h3><p class="basic-note">${escape(c.basicNote)}</p></div>` : ""}</section><section class="panel content-panel"><h2>구매 · 상담 기록 <span class="count">${history.length}</span></h2>${history.length ? `<ol class="timeline">${history.map(item => `<li><time datetime="${escape(item.date)}">${date(item.date)}</time><span class="history-label">${item.type === "purchase" ? "구매" : "상담"}</span><p>${escape(item.text)}</p>${item.type === "purchase" ? `<span class="muted small">${Number(item.amount).toLocaleString("ko-KR")}원</span>` : `<span class="visibility">${visibility(item.visibility)}</span>${item.preference ? `<p class="muted small">취향 · ${escape(item.preference)}</p>` : ""}${item.interest ? `<p class="muted small">관심 상품 · ${escape(item.interest)}</p>` : ""}${item.task ? `<p class="muted small">다음 할 일 · ${escape(item.task)}</p>` : ""}`}</li>`).join("")}</ol>` : '<p class="muted small">첫 상담 메모로 고객의 이야기를 시작해 보세요.</p>'}</section></div><section class="panel content-panel"><form id="memo-form" class="memo-form"><h2>오늘의 응대, 한 줄로 남기기</h2><p>짧게 기록하면 취향, 관심 상품, 다음 할 일로 정리해 드려요.</p><label for="memo-text">상담 메모</label><textarea id="memo-text" rows="5" maxlength="1000" required placeholder="예: 베이지 색상을 좋아하심. 가디건에 관심 있고, 입고되면 연락드리기."></textarea><p class="field-help">Mock 분류 결과는 다음 화면에서 직접 수정할 수 있어요.</p><p id="memo-error" class="error" role="alert"></p><button class="button primary" type="submit">✧ 메모 정리하고 확인하기 →</button></form></section></div>`;
+    const success = params.get("purchase") === "1" ? "구매 기록을 저장했어요." : params.get("saved") === "1" ? "메모를 저장했어요. 다음 응대에 활용해 보세요." : params.get("created") === "1" ? "새로운 고객을 등록했어요." : "";
+    $("#detail-content").innerHTML = `<section class="customer-column" aria-label="고객 정보" tabindex="0">${success ? `<div class="success" role="status">${success}</div>` : ""}<header class="page-heading"><div class="profile">${avatar(c)}<div class="profile-info"><h1>${escape(c.name)} <span class="muted small">고객님</span></h1><div class="anniversary-row"><span id="anniversary-display"></span><button id="anniversary-edit" class="button secondary button-small" type="button" aria-expanded="false" aria-controls="anniversary-form">입력</button></div><form id="anniversary-form" class="anniversary-form" hidden><label>기념일 이름<input id="anniversary-name" maxlength="30" placeholder="예: 생일, 결혼기념일"></label><label>날짜<input id="anniversary-date" type="date" min="0001-01-01" max="9999-12-31"></label><p class="field-help">이름과 날짜를 모두 비우고 저장하면 기념일이 지워집니다.</p><p id="anniversary-error" class="error" role="alert"></p><div class="anniversary-actions"><button class="button primary button-small" type="submit">저장</button><button id="anniversary-cancel" class="button secondary button-small" type="button">취소</button></div></form><span id="anniversary-status" class="anniversary-status" role="status"></span><p>${escape(c.phone)}</p></div></div><span class="demo-badge">고객 한눈에 보기</span></header><section class="summary-grid" aria-label="고객 핵심 요약"><div class="panel summary-card"><div class="label">최근 구매</div><strong>${escape(purchase?.text || "아직 구매 기록이 없어요")}</strong><p>${purchase ? `${date(purchase.date)} · ${Number(purchase.amount).toLocaleString("ko-KR")}원` : "아래에서 첫 구매 내용을 기록해 주세요."}</p></div><div class="panel summary-card"><div class="label">마지막 방문일</div><strong>${date(c.lastVisit)}</strong><p>최근 응대 기록 기준</p></div><div class="panel summary-card highlight"><div class="label">↗ 다음 응대 메모</div><strong>${escape(c.nextMemo?.text || "다음 방문에 전할 메모를 남겨주세요.")}</strong>${c.nextMemo ? `<p>${visibility(c.nextMemo.visibility)}</p>` : ""}</div></section><div class="customer-history"><section class="panel content-panel"><div class="preferences-heading"><h2>고객 취향과 관심사</h2><button id="preferences-edit" class="button secondary button-small" type="button" aria-expanded="false" aria-controls="preferences-form">수정</button></div><div id="preferences-display"><div class="tag-group"><h3>취향</h3><div id="preference-tags">${tags(c.preferences)}</div></div><div class="tag-group"><h3>관심 상품</h3><div id="interest-tags">${tags(c.interests)}</div></div><div class="tag-group"><h3>기본 메모</h3><p id="basic-note-display" class="basic-note">${escape(c.basicNote || "아직 등록된 메모가 없어요.")}</p></div></div><form id="preferences-form" class="preferences-form" hidden><p id="preferences-help" class="field-help">취향과 관심 상품은 한 줄에 하나씩 입력하세요. 내용을 비우고 저장하면 삭제됩니다.</p><label>취향<textarea id="edit-preferences" rows="3" aria-describedby="preferences-help" placeholder="예: 차분한 색상"></textarea></label><label>관심 상품<textarea id="edit-interests" rows="3" aria-describedby="preferences-help" placeholder="예: 가을 니트"></textarea></label><label>기본 메모<textarea id="edit-basic-note" rows="3" maxlength="1000" aria-describedby="basic-note-help" placeholder="고객에 대해 기억할 내용을 남겨주세요."></textarea></label><p id="basic-note-help" class="field-help">기본 메모는 최대 1,000자까지 입력할 수 있어요.</p><p id="preferences-error" class="error" role="alert"></p><div class="anniversary-actions"><button class="button primary button-small" type="submit">저장</button><button id="preferences-cancel" class="button secondary button-small" type="button">취소</button></div></form><p id="preferences-status" class="preferences-status" role="status"></p></section><section class="panel content-panel"><h2>구매 · 상담 기록 <span class="count">${history.length}</span></h2>${renderHistory(history)}</section></div></section><section class="panel content-panel input-column" aria-label="상담 및 구매 입력" tabindex="0"><form id="memo-form" class="memo-form"><h2>오늘의 응대, 한 줄로 남기기</h2><p>짧게 기록하면 취향, 관심 상품, 다음 할 일로 정리해 드려요.</p><label for="memo-text">상담 메모</label><textarea id="memo-text" rows="5" maxlength="1000" required placeholder="예: 베이지 색상을 좋아하심. 가디건에 관심 있고, 입고되면 연락드리기."></textarea><p class="field-help">Mock 분류 결과는 다음 화면에서 직접 수정할 수 있어요.</p><p id="memo-error" class="error" role="alert"></p><button class="button primary" type="submit">✧ 메모 정리하고 확인하기 →</button></form></section>`;
+
+    $("#memo-form").insertAdjacentHTML("afterend", `<form id="purchase-form" class="record-section"><h2>구매 내용 기록</h2><label>구매 내용 *<input id="purchase-text" required maxlength="200" placeholder="예: 베이지 가디건 1개, 코튼 셔츠 2개"></label><div class="record-fields"><label>총 구매 금액 (원) *<input id="purchase-amount" type="number" min="0" max="999999999" step="1" required inputmode="numeric" placeholder="예: 89000"></label><label>구매 일시 *<input id="purchase-date" type="datetime-local" required></label></div><label>구매 메모 <span class="muted">(선택)</span><textarea id="purchase-note" maxlength="1000" rows="2" placeholder="색상, 사이즈 등 기억할 내용을 남겨주세요."></textarea></label><p id="purchase-error" class="error" role="alert"></p><button class="button primary" type="submit">구매 기록 저장하기</button></form>`);
+    setupAnniversary(c);
+    setupPreferences(c);
+    const localNow = new Date();
+    const dateValue = new Date(localNow.getTime() - localNow.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    $("#purchase-date").value = dateValue;
+    $("#purchase-date").max = dateValue;
+    const purchaseId = id();
+    $("#purchase-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const text = $("#purchase-text").value.trim();
+      const amountText = $("#purchase-amount").value.trim();
+      const amount = Number(amountText);
+      const when = new Date($("#purchase-date").value);
+      const note = $("#purchase-note").value.trim();
+      let error = "";
+      if (!text) error = "구매 내용을 입력해 주세요.";
+      else if (!amountText || !Number.isSafeInteger(amount) || amount < 0 || amount > 999999999) error = "구매 금액은 0~999,999,999원의 정수로 입력해 주세요.";
+      else if (!Number.isFinite(when.getTime()) || when.getTime() > Date.now()) error = "구매 일시를 현재 이전으로 입력해 주세요.";
+      $("#purchase-error").textContent = error;
+      if (error) return;
+      if (c.history.some(item => item.id === purchaseId)) return;
+      const purchase = {id:purchaseId, type:"purchase", date:when.toISOString(), text, amount, note};
+      const updated = {...c, lastVisit:!c.lastVisit || when > new Date(c.lastVisit) ? purchase.date : c.lastVisit, history:[...c.history, purchase]};
+      if (await saveCustomers(customers.map(customer => customer.id === c.id ? updated : customer))) location.href = detailUrl(c) + "&purchase=1";
+    });
     if (success) historyReplace();
     const draft = read(DRAFT_KEY, null, "sessionStorage");
     if (draft?.customerId === c.id) $("#memo-text").value = draft.text;
@@ -86,6 +138,113 @@
       if (write(DRAFT_KEY, {id:id(), customerId:c.id, text}, "sessionStorage")) location.href = "memo-review.html?id=" + encodeURIComponent(c.id);
     });
   }
+
+  // 고객별 기념일을 이름 아래에서 편집합니다. 다른 작성 중인 폼은 유지합니다.
+  function setupAnniversary(customer) {
+    const form = $("#anniversary-form");
+    const edit = $("#anniversary-edit");
+    function render() {
+      const anniversary = customer.anniversary;
+      $("#anniversary-display").textContent = anniversary
+        ? anniversary.name + " · " + anniversary.date.replace(/-/g, ".")
+        : "기념일 미등록";
+      edit.textContent = anniversary ? "수정" : "입력";
+    }
+    function close() {
+      form.hidden = true;
+      edit.setAttribute("aria-expanded", "false");
+      edit.focus();
+    }
+    edit.addEventListener("click", () => {
+      if (!form.hidden) { close(); return; }
+      $("#anniversary-name").value = customer.anniversary?.name || "";
+      $("#anniversary-date").value = customer.anniversary?.date || "";
+      $("#anniversary-error").textContent = "";
+      $("#anniversary-status").textContent = "";
+      form.hidden = false;
+      edit.setAttribute("aria-expanded", "true");
+      $("#anniversary-name").focus();
+    });
+    $("#anniversary-cancel").addEventListener("click", close);
+    form.addEventListener("keydown", event => {
+      if (event.key === "Escape") { event.preventDefault(); close(); }
+    });
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const name = $("#anniversary-name").value.trim();
+      const value = $("#anniversary-date").value;
+      const parsed = new Date(value + "T00:00:00Z");
+      let error = "";
+      if (name || value) {
+        if (!name || !value) error = "기념일 이름과 날짜를 함께 입력해 주세요.";
+        else if (name.length > 30 || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value < "0001-01-01" || !Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) error = "기념일 이름은 30자 이내로, 날짜는 올바르게 입력해 주세요.";
+      }
+      $("#anniversary-error").textContent = error;
+      if (error) return;
+      const anniversary = name ? {name, date:value} : null;
+      if (!saveCustomers(customers.map(c => c.id === customer.id ? {...c, anniversary} : c))) {
+        $("#anniversary-error").textContent = "저장하지 못했어요. 브라우저 저장소 설정을 확인하고 다시 시도해 주세요.";
+        return;
+      }
+      customer.anniversary = anniversary;
+      render();
+      close();
+      $("#anniversary-status").textContent = anniversary ? "기념일을 저장했어요." : "기념일을 지웠어요.";
+    });
+    render();
+  }
+
+  // 취향·관심 상품·기본 메모를 함께 저장하며 상담·구매 폼은 유지합니다.
+  function setupPreferences(customer) {
+    const form = $("#preferences-form");
+    const button = $("#preferences-edit");
+    function close() {
+      form.hidden = true;
+      $("#preferences-display").hidden = false;
+      button.setAttribute("aria-expanded", "false");
+      button.focus();
+    }
+    button.addEventListener("click", () => {
+      if (!form.hidden) { close(); return; }
+      $("#edit-preferences").value = customer.preferences.join("\n");
+      $("#edit-interests").value = customer.interests.join("\n");
+      $("#edit-basic-note").value = customer.basicNote || "";
+      $("#preferences-error").textContent = "";
+      $("#preferences-status").textContent = "";
+      form.hidden = false;
+      $("#preferences-display").hidden = true;
+      button.setAttribute("aria-expanded", "true");
+      $("#edit-preferences").focus();
+    });
+    $("#preferences-cancel").addEventListener("click", close);
+    form.addEventListener("keydown", event => {
+      if (event.key === "Escape") { event.preventDefault(); close(); }
+    });
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const parse = value => [...new Set(value.split(/\r?\n/).map(line => line.trim()).filter(Boolean))];
+      const preferences = parse($("#edit-preferences").value);
+      const interests = parse($("#edit-interests").value);
+      const basicNote = $("#edit-basic-note").value.trim();
+      if (basicNote.length > 1000) {
+        $("#preferences-error").textContent = "기본 메모는 1,000자 이내로 입력해 주세요.";
+        return;
+      }
+      if (!saveCustomers(customers.map(c => c.id === customer.id ? {...c, preferences, interests, basicNote} : c))) {
+        $("#preferences-error").textContent = "저장하지 못했어요. 브라우저 저장소 설정을 확인하고 다시 시도해 주세요.";
+        return;
+      }
+      customer.preferences = preferences;
+      customer.interests = interests;
+      customer.basicNote = basicNote;
+      $("#basic-note-display").textContent = basicNote || "아직 등록된 메모가 없어요.";
+      $("#preference-tags").innerHTML = tags(preferences);
+      $("#interest-tags").innerHTML = tags(interests);
+      close();
+      $("#preferences-status").textContent = "취향·관심 상품·기본 메모를 저장했어요.";
+    });
+  }
+
   function historyReplace() { history.replaceState(null, "", location.pathname + "?id=" + encodeURIComponent(findCustomer().id)); }
   function newCustomer() {
     $("#new-form").addEventListener("submit", event => {
